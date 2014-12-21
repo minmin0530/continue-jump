@@ -203,8 +203,8 @@ for (var z = 0; z < Z_NUM; ++z) {       mesh[z]     = new Array(CUBE_NUM);   pos
 for (var y = 0; y < CUBE_NUM; ++y){ mesh[z][y] = new Array(CUBE_NUM);   pos[z][y] = new Array(CUBE_NUM);
 for (var x = 0; x < CUBE_NUM; ++x) {
 if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
-x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 ||
-x % 2 == 1 && y % 2 == 1 && z % 2 == 0
+x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1// ||
+//x % 2 == 1 && y % 2 == 1 && z % 2 == 0
 ) {
   var index = z * 10 * 10 + y * 10 + x;
   var HALF =CUBE_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
@@ -284,7 +284,7 @@ textNumber[i] = new Array(5);
 for (var j = 0; j < 5; ++j) {
 textNumber[i][j] = new THREE.Mesh( textGeometry[i], textMaterial );
 textNumber[i][j].position.x = j * 5;
-//scene.add( textNumber[i][j] );
+scene.add( textNumber[i][j] );
 }
 
 }
@@ -295,12 +295,12 @@ textNumber[i][j].position.x = j * 5;
 
 
 //x,y,zの位置からインデックスを取得
-var x = (~~((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
-var y = (~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
-var z = (~~((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
+var x = Math.abs(~~((Math.cos(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) + (Math.sin(rad) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
+var y = Math.abs(~~((Math.cos(rad) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) - (Math.sin(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
+var z = ~~(((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
 
-/*数値を文字へ変換
-var ss = "" + z;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
+//数値を文字へ変換
+var ss = "" + x;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var t = 0;
 for (var i = 0; i < 1; ++i) {
 t = ss.substr(i, 1);
@@ -312,7 +312,6 @@ else {
  }
 }
 }
-*/
 
 if (!rotation_flag) {
 
@@ -324,16 +323,16 @@ if (!rotation_flag) {
 //  player_pos.y = mesh[0][0][0].position.y + CUBE_SIZE - PLAYER_SIZE / 2;
 //}
 
-//頭の当たり判定
+//床の当たり判定
 for (var i = -1; i <2; ++i) {
 for (var j = -1; j <2; ++j) {
 if (
-player_pos.x > mesh[z+j][y-1][x+i].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.x < mesh[z+j][y-1][x+i].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.y < mesh[z+j][y-1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.y > mesh[z+j][y-1][x+i].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.z > mesh[z+j][y-1][x+i].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.z < mesh[z+j][y-1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+player_pos.x > mesh[z+j][y - 1][x+i].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+j][y - 1][x+i].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+j][y - 1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+j][y - 1][x+i].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+j][y - 1][x+i].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+j][y - 1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 ) {
 	if (player_pos.y < mesh[z+j][y-1][x+i].position.y+ (CUBE_SIZE + PLAYER_SIZE) / 2) {
 		player_pos.y = mesh[z+j][y-1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2;
@@ -357,7 +356,7 @@ player_pos.x +=       x_speed;
 player_pos.y += jump_speed;
 player_pos.z +=       z_speed;
 
-}
+}//rotation_flag
 
 //ボタンが押されていたらspeedに速さを入れる
     if (keyArray[0] ) {        keyArray[0] = false;        x_speed = -0.5;}
@@ -377,15 +376,15 @@ player_pos.z +=       z_speed;
 
 //回転角を代入
 if (rotation_flag) { angle += 1;}
-if (angle % 90 == 0) { rotation_flag = false;}
+if (angle % 90 == 0) { rotation_flag = false; }
 rad = 3.14159 / 180 * angle;
 for (var z = 0; z < Z_NUM; ++z) {
 for (var y = 0; y < CUBE_NUM; ++y){ 
 for (var x = 0; x < CUBE_NUM; ++x) {
 //枠の位置のキューブなら回転する
 if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
-x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 ||
-x % 2 == 1 && y % 2 == 1 && z % 2 == 0
+x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 //||
+//x % 2 == 1 && y % 2 == 1 && z % 2 == 0
 ) {
   var i = z * 10 * 10 + y * 10 + x;
   mesh[z][y][x].position.set( Math.cos(rad) * pos[z][y][x].x + Math.sin(rad) * pos[z][y][x].y, Math.cos(rad) * pos[z][y][x].y - Math.sin(rad) * pos[z][y][x].x, pos[z][y][x].z );
