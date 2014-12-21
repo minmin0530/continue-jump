@@ -60,6 +60,111 @@ document.addEventListener("keyup", function(e) {
     }
 }, false);
 
+function x_left(x, y, z)
+{
+for (var i = -1; i <2; ++i) {
+for (var j = -1; j <2; ++j) {
+if (
+player_pos.x > mesh[z+j][y+i][x-1].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+j][y+i][x-1].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+j][y+i][x-1].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+j][y+i][x-1].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+j][y+i][x-1].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+j][y+i][x-1].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+) {
+	if (player_pos.x < mesh[z+j][y+i][x-1].position.x  + (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.x = mesh[z+j][y+i][x-1].position.x  + (CUBE_SIZE + PLAYER_SIZE) / 2;
+		x_speed = 0;
+	}
+}
+}
+}
+}
+
+function x_right(x, y, z)
+{
+for (var i = -1; i <2; ++i) {
+for (var j = -1; j <2; ++j) {
+if (
+player_pos.x > mesh[z+j][y+i][x+1].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+j][y+i][x+1].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+j][y+i][x+1].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+j][y+i][x+1].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+j][y+i][x+1].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+j][y+i][x+1].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+) {
+	if (player_pos.x > mesh[z+j][y+i][x+1].position.x  - (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.x = mesh[z+j][y+i][x+1].position.x  - (CUBE_SIZE + PLAYER_SIZE) / 2;
+		x_speed = 0;
+	}
+}
+}
+}
+}
+
+function y_top(x, y, z)
+{
+for (var i = -1; i <2; ++i) {
+for (var j = -1; j <2; ++j) {
+if (
+player_pos.x > mesh[z+j][y+1][x+i].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+j][y+1][x+i].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+j][y+1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+j][y+1][x+i].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+j][y+1][x+i].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+j][y+1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+) {
+	if (player_pos.y > mesh[z+j][y+1][x+i].position.y  - (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.y = mesh[z+j][y+1][x+i].position.y  - (CUBE_SIZE + PLAYER_SIZE) / 2;
+		jump_speed = 0;
+	}
+}
+}
+}
+}
+
+
+function z_front(x, y, z)
+{
+for (var i = -1; i <2; ++i) {
+for (var j = -1; j <2; ++j) {
+if (
+player_pos.x > mesh[z][y+i][x+j].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z][y+i][x+j].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z][y+i][x+j].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z][y+i][x+j].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z][y+i][x+j].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z][y+i][x+j].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+) {
+	if (player_pos.z < mesh[z][y+i][x+j].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.z = mesh[z][y+i][x+j].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2;
+		z_speed = 0;
+	}
+}
+}
+}
+}
+
+function z_back(x, y, z)
+{
+for (var i = -1; i <2; ++i) {
+for (var j = -1; j <2; ++j) {
+if (
+player_pos.x > mesh[z+1][y+i][x+j].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+1][y+i][x+j].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+1][y+i][x+j].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+1][y+i][x+j].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+1][y+i][x+j].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+1][y+i][x+j].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+) {
+	if (player_pos.z > mesh[z+1][y+i][x+j].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.z = mesh[z+1][y+i][x+j].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2;
+		z_speed = 0;
+	}
+}
+}
+}
+}
 
 var main = function () {
   var scene = new THREE.Scene();								//シーン（世界、舞台）
@@ -96,7 +201,12 @@ var main = function () {
 for (var z = 0; z < Z_NUM; ++z) {       mesh[z]     = new Array(CUBE_NUM);   pos[z]     = new Array(CUBE_NUM);
 for (var y = 0; y < CUBE_NUM; ++y){ mesh[z][y] = new Array(CUBE_NUM);   pos[z][y] = new Array(CUBE_NUM);
 for (var x = 0; x < CUBE_NUM; ++x) {
-if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 || x == 5 && y == 1 && z == 2) {
+if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
+ x == 5 && y == 1 && z == 2 ||
+ x == 3 && y == 2 && z == 3 ||
+ x == 4 && y == 3 && z == 2 ||
+ x == 5 && y == 4 && z == 2 
+) {
   var index = z * 10 * 10 + y * 10 + x;
   var HALF =CUBE_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
   var HALF_Z = Z_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
@@ -158,6 +268,7 @@ scene.add(lines[index]);
 }
 }
 }
+
 var textMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
 for (var i = 0; i <11; ++i) {
 if (i == 10) {
@@ -169,8 +280,9 @@ textNumber[i] = new Array(5);
 for (var j = 0; j < 5; ++j) {
 textNumber[i][j] = new THREE.Mesh( textGeometry[i], textMaterial );
 textNumber[i][j].position.x = j * 5;
-scene.add( textNumber[i][j] );
+//scene.add( textNumber[i][j] );
 }
+
 }
 
  
@@ -186,7 +298,7 @@ if (player_pos.y + PLAYER_SIZE / 2> mesh[0][0][0].position.y + CUBE_SIZE) {
 var x = (~~((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var y = (~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var z = (~~((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
-
+/*
 var ss = "" + z;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var t = 0;
 for (var i = 0; i < 1; ++i) {
@@ -199,8 +311,7 @@ else {
  }
 }
 }
-
-var x_index = 5;//Math.round((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE);
+*/
 for (var i = -1; i <2; ++i) {
 for (var j = -1; j <2; ++j) {
 if (
@@ -213,21 +324,21 @@ player_pos.z < mesh[z+j][y-1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 ) {
 	if (player_pos.y < mesh[z+j][y-1][x+i].position.y+ (CUBE_SIZE + PLAYER_SIZE) / 2) {
 		player_pos.y = mesh[z+j][y-1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2;
-jump_speed = 0;
-	}
-//	x_speed = 0;
-	if (player_pos.x > mesh[0][1][x_index].position.x) {
-///		player_pos.x = mesh[0][1][x_index].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2;
-	} else if (player_pos.x < mesh[0][1][x_index].position.x) {
-//		player_pos.x = mesh[0][1][x_index].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2;
+		jump_speed = 0;
 	}
 }
 }
 }
 
-player_pos.x +=       x_speed;
-player_pos.y += jump_speed;
-player_pos.z +=       z_speed;
+if (x_speed < 0) {x_left(x, y, z);}
+if (x_speed > 0) {x_right(x, y, z);}
+if (jump_speed > 0) {y_top(x, y, z);}
+if (z_speed > 0) {z_back(x, y, z);}
+if (z_speed < 0) {z_front(x, y, z);}
+
+if (player_pos.z < mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2}
+if (player_pos.z > mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2}
+
 
     if (keyArray[0] ) {        keyArray[0] = false;        x_speed = -0.5;}
     if (keyArray[2] ) {        keyArray[2] = false;        x_speed =  0.5;}
@@ -238,6 +349,11 @@ player_pos.z +=       z_speed;
     if (keyArrayUp[2]) {        keyArrayUp[2] = false;   x_speed = 0; }
     if (keyArrayUp[1]) {        keyArrayUp[1] = false;   z_speed = 0; }
     if (keyArrayUp[3]) {        keyArrayUp[3] = false;   z_speed = 0; }
+
+player_pos.x +=       x_speed;
+player_pos.y += jump_speed;
+player_pos.z +=       z_speed;
+
     player.position.set(player_pos.x, player_pos.y,player_pos.z	);
 
 rad = 3.14159 / 180 * angle;
