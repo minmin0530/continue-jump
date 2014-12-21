@@ -14,11 +14,12 @@ var GRAVITY = 0.05;
 var CUBE_SIZE = 10;
 var CUBE_NUM = 9;
 var Z_NUM = 5;
-var JUMP_SPEED = 1.6;
+var JUMP_SPEED = 1.53;
 var jump_speed = 0;
 var x_speed = 0;
 var z_speed = 0;
 var angle = 0;
+var rotation_flag = false;
 var player;
 var player_pos;
 var mesh = new Array(Z_NUM);
@@ -202,10 +203,8 @@ for (var z = 0; z < Z_NUM; ++z) {       mesh[z]     = new Array(CUBE_NUM);   pos
 for (var y = 0; y < CUBE_NUM; ++y){ mesh[z][y] = new Array(CUBE_NUM);   pos[z][y] = new Array(CUBE_NUM);
 for (var x = 0; x < CUBE_NUM; ++x) {
 if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
- x == 5 && y == 1 && z == 2 ||
- x == 3 && y == 2 && z == 3 ||
- x == 4 && y == 3 && z == 2 ||
- x == 5 && y == 4 && z == 2 
+x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 ||
+x % 2 == 1 && y % 2 == 1 && z % 2 == 0
 ) {
   var index = z * 10 * 10 + y * 10 + x;
   var HALF =CUBE_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
@@ -223,7 +222,9 @@ material = new THREE.MeshPhongMaterial( { color: 0xff0000, transparent:true, ble
 
 var rad = 3.14159 / 180 * angle;
   mesh[z][y][x].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
+if (z == 1 || z == 2 || z == 3) {
   scene.add( mesh[z][y][x] );											//シーンにメッシュを登録（カメラに見える世界に登録）
+}
 var material2;
 material2 = new THREE.LineBasicMaterial({color:0x000000,linewidth:5}) ;
 geometry2[index] = new THREE.Geometry();
@@ -255,7 +256,10 @@ for (var i = 0; i < 18; ++i) {
 
 lines[index] = new THREE.Line(geometry22[index],material2);
 lines[index].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
+if (z == 1 || z == 2 || z == 3) {
 scene.add(lines[index]);
+}
+
 } else {
   var index = z * 10 * 10 + y * 10 + x;
   pos[z][y][x] = new THREE.Vector3( CUBE_SIZE * 100, CUBE_SIZE * 100, CUBE_SIZE  * 100);
@@ -289,16 +293,13 @@ textNumber[i][j].position.x = j * 5;
   ( function renderLoop () {
     requestAnimationFrame( renderLoop );							//毎フレーム更新
 
-if (player_pos.y + PLAYER_SIZE / 2> mesh[0][0][0].position.y + CUBE_SIZE) {
-  jump_speed -= GRAVITY;
-} else if (player_pos.y + PLAYER_SIZE / 2 < mesh[0][0][0].position.y + CUBE_SIZE) {
-  jump_speed = 0;
-  player_pos.y = mesh[0][0][0].position.y + CUBE_SIZE - PLAYER_SIZE / 2;
-}
+
+//x,y,zの位置からインデックスを取得
 var x = (~~((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var y = (~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var z = (~~((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
-/*
+
+/*数値を文字へ変換
 var ss = "" + z;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var t = 0;
 for (var i = 0; i < 1; ++i) {
@@ -312,6 +313,18 @@ else {
 }
 }
 */
+
+if (!rotation_flag) {
+
+//重力をspeedに加算
+//if (player_pos.y + PLAYER_SIZE / 2> mesh[0][0][0].position.y + CUBE_SIZE) {
+  jump_speed -= GRAVITY;
+//} else if (player_pos.y + PLAYER_SIZE / 2 < mesh[0][0][0].position.y + CUBE_SIZE) {
+//  jump_speed = 0;
+//  player_pos.y = mesh[0][0][0].position.y + CUBE_SIZE - PLAYER_SIZE / 2;
+//}
+
+//頭の当たり判定
 for (var i = -1; i <2; ++i) {
 for (var j = -1; j <2; ++j) {
 if (
@@ -329,7 +342,7 @@ player_pos.z < mesh[z+j][y-1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 }
 }
 }
-
+//当たり判定
 if (x_speed < 0) {x_left(x, y, z);}
 if (x_speed > 0) {x_right(x, y, z);}
 if (jump_speed > 0) {y_top(x, y, z);}
@@ -339,28 +352,41 @@ if (z_speed < 0) {z_front(x, y, z);}
 if (player_pos.z < mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2}
 if (player_pos.z > mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2}
 
+//位置にspeedを追加
+player_pos.x +=       x_speed;
+player_pos.y += jump_speed;
+player_pos.z +=       z_speed;
 
+}
+
+//ボタンが押されていたらspeedに速さを入れる
     if (keyArray[0] ) {        keyArray[0] = false;        x_speed = -0.5;}
     if (keyArray[2] ) {        keyArray[2] = false;        x_speed =  0.5;}
     if (keyArray[1] ) {        keyArray[1] = false;        z_speed = -0.5;}
     if (keyArray[3] ) {        keyArray[3] = false;        z_speed =  0.5;}
-    if (keyArray[4] ) {        keyArray[4] = false;        jump_speed = JUMP_SPEED;    }
+    if (keyArray[4]  && jump_speed == 0) {        keyArray[4] = false;        jump_speed = JUMP_SPEED;    }
+    if (keyArray[5] ) { keyArray[5] = false; rotation_flag = !rotation_flag;} 
     if (keyArrayUp[0]) {        keyArrayUp[0] = false;   x_speed = 0; }
     if (keyArrayUp[2]) {        keyArrayUp[2] = false;   x_speed = 0; }
     if (keyArrayUp[1]) {        keyArrayUp[1] = false;   z_speed = 0; }
     if (keyArrayUp[3]) {        keyArrayUp[3] = false;   z_speed = 0; }
 
-player_pos.x +=       x_speed;
-player_pos.y += jump_speed;
-player_pos.z +=       z_speed;
 
+//位置をプレイヤー位置に設定
     player.position.set(player_pos.x, player_pos.y,player_pos.z	);
 
+//回転角を代入
+if (rotation_flag) { angle += 1;}
+if (angle % 90 == 0) { rotation_flag = false;}
 rad = 3.14159 / 180 * angle;
 for (var z = 0; z < Z_NUM; ++z) {
 for (var y = 0; y < CUBE_NUM; ++y){ 
 for (var x = 0; x < CUBE_NUM; ++x) {
-if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1) {
+//枠の位置のキューブなら回転する
+if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
+x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 ||
+x % 2 == 1 && y % 2 == 1 && z % 2 == 0
+) {
   var i = z * 10 * 10 + y * 10 + x;
   mesh[z][y][x].position.set( Math.cos(rad) * pos[z][y][x].x + Math.sin(rad) * pos[z][y][x].y, Math.cos(rad) * pos[z][y][x].y - Math.sin(rad) * pos[z][y][x].x, pos[z][y][x].z );
   lines[i].position.set( Math.cos(rad) * pos[z][y][x].x + Math.sin(rad) * pos[z][y][x].y, Math.cos(rad) * pos[z][y][x].y - Math.sin(rad) * pos[z][y][x].x, pos[z][y][x].z );
