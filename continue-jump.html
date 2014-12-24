@@ -295,12 +295,13 @@ scene.add( textNumber[i][j] );
 
 
 //x,y,zの位置からインデックスを取得
-var x = Math.abs(~~((Math.cos(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) + (Math.sin(rad) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
+var x = Math.abs(~~((Math.cos(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) + (Math.sin(rad ) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
 var y = Math.abs(~~((Math.cos(rad) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) - (Math.sin(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
 var z = ~~(((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
-
+var add = -1;
+if (rad != 0) {x=8-x; add=0;}
 //数値を文字へ変換
-var ss = "" + x;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
+var ss = "" + y;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var t = 0;
 for (var i = 0; i < 1; ++i) {
 t = ss.substr(i, 1);
@@ -323,19 +324,22 @@ if (!rotation_flag) {
 //  player_pos.y = mesh[0][0][0].position.y + CUBE_SIZE - PLAYER_SIZE / 2;
 //}
 
+var addi=0;
 //床の当たり判定
 for (var i = -1; i <2; ++i) {
+addi = i;
+if(rad != 0) {addi = 1; add = i;}
 for (var j = -1; j <2; ++j) {
 if (
-player_pos.x > mesh[z+j][y - 1][x+i].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.x < mesh[z+j][y - 1][x+i].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.y < mesh[z+j][y - 1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.y > mesh[z+j][y - 1][x+i].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.z > mesh[z+j][y - 1][x+i].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.z < mesh[z+j][y - 1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+player_pos.x > mesh[z+j][y + add][x+addi].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+j][y + add][x+addi].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+j][y + add][x+addi].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+j][y + add][x+addi].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+j][y + add][x+addi].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+j][y + add][x+addi].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 ) {
-	if (player_pos.y < mesh[z+j][y-1][x+i].position.y+ (CUBE_SIZE + PLAYER_SIZE) / 2) {
-		player_pos.y = mesh[z+j][y-1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2;
+	if (player_pos.y < mesh[z+j][y + add][x+addi].position.y+ (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.y = mesh[z+j][y + add][x+addi].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2;
 		jump_speed = 0;
 	}
 }
@@ -348,6 +352,9 @@ if (jump_speed > 0) {y_top(x, y, z);}
 if (z_speed > 0) {z_back(x, y, z);}
 if (z_speed < 0) {z_front(x, y, z);}
 
+//if (player_pos.x < -3 * CUBE_SIZE - PLAYER_SIZE / 2 + 1) {x_speed = 0; player_pos.x = -3 * CUBE_SIZE - PLAYER_SIZE / 2 + 1;}
+//if (player_pos.x > 3 * CUBE_SIZE + PLAYER_SIZE / 2 - 1) {x_speed = 0; player_pos.x = 3 * CUBE_SIZE + PLAYER_SIZE / 2 - 1;}
+//if (player_pos.y < -3 * CUBE_SIZE - PLAYER_SIZE / 2 + 1) {jump_speed = 0; player_pos.y = -3 * CUBE_SIZE - PLAYER_SIZE / 2  + 1;}
 if (player_pos.z < mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2}
 if (player_pos.z > mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2}
 
