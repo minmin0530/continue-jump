@@ -2,42 +2,71 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>get started with three.js</title>
+<title>continue-jump</title>
 </head>
 <body>
- 
+<a href="http://continue-jump.com/blog.php">ブログへのリンク</a>　xボタン：ジャンプ、　sボタン：キューブ、　zボタン：回転、　aボタン：逆回転</br>
 <script src="three.min.js"></script>
 <script src="helvetiker_bold.typeface.js"></script>
 <script>
-var PLAYER_SIZE = 5;
-var GRAVITY = 0.05;
-var CUBE_SIZE = 10;
-var CUBE_NUM = 9;
-var Z_NUM = 5;
-var JUMP_SPEED = 1.53;
-var jump_speed = 0;
-var x_speed = 0;
-var z_speed = 0;
+var PLAYER_SIZE     = 5;
+var   CUBE_SIZE     = 10;
+    
+var        CUBE_NUM = 9;
+var PLAYER_CUBE_NUM = 50;
+var           Z_NUM = 5;
+
+var GRAVITY         = 0.05;
+var JUMP_SPEED      = 1.53;
+var    X_SPEED      = 0.5;    
+var    Z_SPEED      = 0.5;    
+var jump_speed      = 0;
+var    x_speed      = 0;
+var    z_speed      = 0;
+
+var rotation_timing = 0;
+    
+var deleteFlag          = new Array(PLAYER_CUBE_NUM);
+var cubesOfPlayers      = new Array(PLAYER_CUBE_NUM);
+var cubesOfPlayersPos   = new Array(PLAYER_CUBE_NUM);
+var cubesOfPlayersSpeed = new Array(PLAYER_CUBE_NUM);
+var cubesOfPlayersColor = new Array(PLAYER_CUBE_NUM);
+var material_player_cube_r = new Array(PLAYER_CUBE_NUM);
+var material_player_cube_g = new Array(PLAYER_CUBE_NUM);
+var material_player_cube_b = new Array(PLAYER_CUBE_NUM);
+
+var IndexOfPlayerCubes  = 0;
+var xCollisionIndex     = new Array(PLAYER_CUBE_NUM);
+var yCollisionIndex     = new Array(PLAYER_CUBE_NUM);
+var zCollisionIndex     = new Array(PLAYER_CUBE_NUM);
+
 var angle = 0;
 var rotation_flag = false;
+var reverse_rotation_flag = false;
+var old_angle = 0;
+
 var player;
 var player_pos;
-var mesh = new Array(Z_NUM);
-var pos = new Array(Z_NUM);
-var textGeometry = new Array(11);
-var textNumber = new Array(11);
+var player_pos_rot;
+var mesh                = new Array(Z_NUM);
+var pos                 = new Array(Z_NUM);
+var textGeometry        = new Array(11);
+var textNumber          = new Array(11);
+var debugText           = "0";
+var geometry2           = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
+var geometry22          = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
+var geometry3           = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
+var geometry33          = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
+var lines               = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
+var cubesOfPlayerslines               = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
 
-var geometry2 = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
-var geometry22 = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
-var lines = new Array(CUBE_NUM * CUBE_NUM * Z_NUM);
+var keyArray            = new Array(8);
+var keyArrayUp          = new Array(8);
 
-var keyArray = new Array(6);
-var keyArrayUp = new Array(6);
-
-var key_repeat_x_plus = false;
-var key_repeat_x_minus = false;
-var key_repeat_z_plus = false;
-var key_repeat_z_minus = false;
+var key_repeat_x_plus   = false;
+var key_repeat_x_minus  = false;
+var key_repeat_z_plus   = false;
+var key_repeat_z_minus  = false;
 
 document.addEventListener("keydown", function(e) {
     switch(e.keyCode) {
@@ -45,25 +74,94 @@ document.addEventListener("keydown", function(e) {
     case 38: keyArray[1] = true; break;
     case 39: keyArray[2] = true; break;
     case 40: keyArray[3] = true; break;
-    case 88: keyArray[4] = true; break;
-    case 90: keyArray[5] = true; break;
+    case 88: keyArray[4] = true; break;//x
+    case 90: keyArray[5] = true; break;//z
+    case 83: keyArray[6] = true; break;//s
+    case 65: keyArray[7] = true; break;//a
     }
 }, false);
 
 document.addEventListener("keyup", function(e) {
     switch(e.keyCode) {
     case 37: keyArrayUp[0] = true; break;
-    case 38: keyArrayUp[1] = true; break;
+    case 38: keyArrayUp[1] = true; break;   
     case 39: keyArrayUp[2] = true; break;
     case 40: keyArrayUp[3] = true; break;
     case 88: keyArrayUP[4] = true; break;
     case 90: keyArrayUP[5] = true; break;
+    case 83: keyArrayUP[6] = true; break;
+    case 65: keyArrayUP[7] = true; break;
     }
 }, false);
 
+function x_left_player_cube()
+{
+  for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 + X_SPEED &&
+        player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+        player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+       ) {
+      player_pos.x = cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2;
+      x_speed = 0;
+    }
+  }
+}
+
+function x_right_player_cube()
+{
+  for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 - X_SPEED &&
+        player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+        player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+       ) {
+      player_pos.x = cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2;
+      x_speed = 0;
+    }
+  }
+}
+
+function z_front_player_cube()
+{
+  for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+        player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+       ) {
+      player_pos.z = cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2;
+      z_speed = 0;
+    }
+  }
+}
+
+function z_back_player_cube()
+{
+  for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+        player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+       ) {
+      player_pos.z = cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2;
+      z_speed = 0;
+    }
+  }
+}
+
+    
 function x_left(x, y, z)
 {
-for (var i = -1; i <2; ++i) {
+for (var i = -1 ; i <1; ++i) {
 for (var j = -1; j <2; ++j) {
 if (
 player_pos.x > mesh[z+j][y+i][x-1].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
@@ -84,7 +182,7 @@ player_pos.z < mesh[z+j][y+i][x-1].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 
 function x_right(x, y, z)
 {
-for (var i = -1; i <2; ++i) {
+for (var i = -1; i <1; ++i) {
 for (var j = -1; j <2; ++j) {
 if (
 player_pos.x > mesh[z+j][y+i][x+1].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
@@ -124,6 +222,29 @@ player_pos.z < mesh[z+j][y+1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 }
 }
 
+function y_bottom(x, y, z)
+{
+for (var i = -1; i <2; ++i) {
+for (var j = -1; j <2; ++j) {
+if (
+player_pos.x > mesh[z+j][y-1][x+i].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.x < mesh[z+j][y-1][x+i].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y < mesh[z+j][y-1][x+i].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.y > mesh[z+j][y-1][x+i].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z > mesh[z+j][y-1][x+i].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+player_pos.z < mesh[z+j][y-1][x+i].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+) {
+	if (player_pos.y < mesh[z+j][y-1][x+i].position.y  + (CUBE_SIZE + PLAYER_SIZE) / 2) {
+		player_pos.y = mesh[z+j][y-1][x+i].position.y  + (CUBE_SIZE + PLAYER_SIZE) / 2;
+		jump_speed = 0;
+	}
+}
+}
+}
+}
+
+    
+    
 
 function z_front(x, y, z)
 {
@@ -167,12 +288,13 @@ player_pos.z < mesh[z+1][y+i][x+j].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
 }
 }
 
+    
 var main = function () {
   var scene = new THREE.Scene();								//シーン（世界、舞台）
  
-  var width  = 1024;												//画面の幅
-  var height = 512 + 256;												//画面の高さ
-  var fov    = 90;												//画角
+  var width  = 1024;											//画面の幅
+  var height = 512 + 256;										//画面の高さ
+  var fov    = 60;												//画角
   var aspect = width / height;									//画面の縦横比
   var near   = 1;												//カメラに映る最短距離
   var far    = 10000;											//カメラに映る最長距離
@@ -181,197 +303,525 @@ var main = function () {
   camera.lookAt( {x:0, y:0, z:0 } );
  
   var renderer = new THREE.WebGLRenderer();						//レンダラー：３Dをhtmlに描き込むもの
-  renderer.setSize( width, height );								//描き込む画面のサイズ
-  renderer.setClearColorHex(0x888888, 1.0);
+  renderer.setSize( width, height );							//描き込む画面のサイズ
+  renderer.setClearColorHex(0xffffff, 1.0);
   document.body.appendChild( renderer.domElement );				//htmlに登録
  
-  var directionalLight = new THREE.DirectionalLight( 0xffffff );		//ライト：白色ライト
+  var directionalLight = new THREE.DirectionalLight( 0xffffff );	//ライト：白色ライト
   directionalLight.position.set( 0, 0.7, 0.7 );						//ライト位置：X：０、　Y：0.7、　Z：0.7
   scene.add( directionalLight );									//シーンに登録（カメラに見える世界に登録）
 
-
+  //プレイヤー初期化
   player_pos = new THREE.Vector3(0, 0, 0);
+  player_pos_rot = new THREE.Vector3(0, 0, 0);
   var geometry_player = new THREE.CubeGeometry(PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE);
   var material_player = new THREE.MeshPhongMaterial( { color: 0x00ff00, transparent:true, blending:THREE.NormalBlending, opacity:0.5 } );//緑
   player = new THREE.Mesh( geometry_player, material_player );				//メッシュ：形と色を１つにまとめる。
   player.position.set(player_pos.x,player_pos.y,player_pos.z);
   scene.add(	player);
 
+  //プレイヤーのキューブ初期化
+  var player_cube_pos = new THREE.Vector3(0, 0, 0);
+  var geometry_player_cube = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+  for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+      material_player_cube_r[v] = new THREE.MeshPhongMaterial( { color: 0xff0000, transparent:true, blending:THREE.NormalBlending, opacity:0.2 } );//赤
+      material_player_cube_g[v] = new THREE.MeshPhongMaterial( { color: 0x00ff00, transparent:true, blending:THREE.NormalBlending, opacity:0.2 } );//緑
+      material_player_cube_b[v] = new THREE.MeshPhongMaterial( { color: 0x0000ff, transparent:true, blending:THREE.NormalBlending, opacity:0.2 } );//青
+    if        (v % 3 == 0) {cubesOfPlayers[v] = new THREE.Mesh( geometry_player_cube, material_player_cube_r[v] ); 	cubesOfPlayersColor[v] = 1;}
+    else if (v % 3 == 1) {cubesOfPlayers[v] = new THREE.Mesh( geometry_player_cube, material_player_cube_g[v] );	cubesOfPlayersColor[v] = 2;}  
+    else if (v % 3 == 2) {cubesOfPlayers[v] = new THREE.Mesh( geometry_player_cube, material_player_cube_b[v] );	cubesOfPlayersColor[v] = 3;}  
+    //cubesOfPlayers[v] = new THREE.Mesh( geometry_player_cube, material_player_cube );				//メッシュ：形と色を１つにまとめる。
+    cubesOfPlayers[v].position.set(player_cube_pos.x,player_cube_pos.y + CUBE_SIZE * 100,player_cube_pos.z);
+    cubesOfPlayersPos[v] = new THREE.Vector3(player_cube_pos.x,player_cube_pos.y + CUBE_SIZE * 100,player_cube_pos.z);
+    cubesOfPlayersSpeed[v] = 0;
+    deleteFlag[0] = 0;
+    scene.add(cubesOfPlayers[v]);
 
 
-for (var z = 0; z < Z_NUM; ++z) {       mesh[z]     = new Array(CUBE_NUM);   pos[z]     = new Array(CUBE_NUM);
-for (var y = 0; y < CUBE_NUM; ++y){ mesh[z][y] = new Array(CUBE_NUM);   pos[z][y] = new Array(CUBE_NUM);
-for (var x = 0; x < CUBE_NUM; ++x) {
-if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
-x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1// ||
-//x % 2 == 1 && y % 2 == 1 && z % 2 == 0
-) {
-  var index = z * 10 * 10 + y * 10 + x;
-  var HALF =CUBE_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
-  var HALF_Z = Z_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
-  pos[z][y][x] = new THREE.Vector3(x * CUBE_SIZE - HALF, y * CUBE_SIZE - HALF, z * CUBE_SIZE - HALF_Z);
-  var geometry = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-  var material;
-if (x == 5 && y == 1 && z == 0) {
-material = new THREE.MeshPhongMaterial( { color: 0x0000ff, transparent:true, blending:THREE.NormalBlending, opacity:0.5 } );	//青
-} else {
-material = new THREE.MeshPhongMaterial( { color: 0xff0000, transparent:true, blending:THREE.NormalBlending, opacity:0.5 } );	//赤
-}
 
-  mesh[z][y][x] = new THREE.Mesh( geometry, material );				//メッシュ：形と色を１つにまとめる。
 
-var rad = 3.14159 / 180 * angle;
-  mesh[z][y][x].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
-if (z == 1 || z == 2 || z == 3) {
-  scene.add( mesh[z][y][x] );											//シーンにメッシュを登録（カメラに見える世界に登録）
-}
-var material2;
-material2 = new THREE.LineBasicMaterial({color:0x000000,linewidth:5}) ;
-geometry2[index] = new THREE.Geometry();
-geometry22[index] = new THREE.Geometry();
-var LINE_SIZE = CUBE_SIZE / 2;
-HALF=0;
-geometry2[index].vertices[0] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, -LINE_SIZE);
-geometry2[index].vertices[1] = new THREE.Vector3(LINE_SIZE - HALF, -LINE_SIZE - HALF,  -LINE_SIZE);
-geometry2[index].vertices[2] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
-geometry2[index].vertices[3] = new THREE.Vector3(-LINE_SIZE - HALF, LINE_SIZE - HALF,  -LINE_SIZE);
-geometry2[index].vertices[4] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, -LINE_SIZE);
-geometry2[index].vertices[5] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, LINE_SIZE );
-geometry2[index].vertices[6] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF, LINE_SIZE );
-geometry2[index].vertices[7] = new THREE.Vector3(LINE_SIZE - HALF,   LINE_SIZE - HALF, LINE_SIZE );
-geometry2[index].vertices[8] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF, LINE_SIZE );
-geometry2[index].vertices[9] = new THREE.Vector3(-LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE);
-geometry2[index].vertices[10] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE);
-geometry2[index].vertices[11] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  -LINE_SIZE);
-geometry2[index].vertices[12] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE );
-geometry2[index].vertices[13] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE );
-geometry2[index].vertices[14] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
-geometry2[index].vertices[15] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE );
-geometry2[index].vertices[16] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE);
-geometry2[index].vertices[17] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
 
-for (var i = 0; i < 18; ++i) {
-   geometry22[index].vertices[i] = new THREE.Vector3(geometry2[index].vertices[i].x,geometry2[index].vertices[i].y,geometry2[index].vertices[i].z);
-}
+      var material3r = new THREE.LineBasicMaterial({color:0xff0000,linewidth:5}) ;
+      var material3g = new THREE.LineBasicMaterial({color:0x00ff00,linewidth:5}) ;
+      var material3b = new THREE.LineBasicMaterial({color:0x0000ff,linewidth:5}) ;
+      geometry3[v] = new THREE.Geometry();
+      geometry33[v] = new THREE.Geometry();
+      var LINE_SIZE = CUBE_SIZE / 2;
+      HALF=0;
+      geometry3[v].vertices[0] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, -LINE_SIZE);
+      geometry3[v].vertices[1] = new THREE.Vector3(LINE_SIZE - HALF, -LINE_SIZE - HALF,  -LINE_SIZE);
+      geometry3[v].vertices[2] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
+      geometry3[v].vertices[3] = new THREE.Vector3(-LINE_SIZE - HALF, LINE_SIZE - HALF,  -LINE_SIZE);
+      geometry3[v].vertices[4] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, -LINE_SIZE);
+      geometry3[v].vertices[5] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, LINE_SIZE );
+      geometry3[v].vertices[6] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF, LINE_SIZE );
+      geometry3[v].vertices[7] = new THREE.Vector3(LINE_SIZE - HALF,   LINE_SIZE - HALF, LINE_SIZE );
+      geometry3[v].vertices[8] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF, LINE_SIZE );
+      geometry3[v].vertices[9] = new THREE.Vector3(-LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE);
+      geometry3[v].vertices[10] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE);
+      geometry3[v].vertices[11] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  -LINE_SIZE);
+      geometry3[v].vertices[12] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE );
+      geometry3[v].vertices[13] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE );
+      geometry3[v].vertices[14] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
+      geometry3[v].vertices[15] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE );
+      geometry3[v].vertices[16] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE);
+      geometry3[v].vertices[17] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
 
-lines[index] = new THREE.Line(geometry22[index],material2);
-lines[index].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
-if (z == 1 || z == 2 || z == 3) {
-scene.add(lines[index]);
-}
+      for (var i = 0; i < 18; ++i) {
+        geometry33[v].vertices[i] = new THREE.Vector3(geometry3[v].vertices[i].x,geometry3[v].vertices[i].y,geometry3[v].vertices[i].z);//player_cube_pos.x, player_cube_pos.y, player_cube_pos.z);
+      }
 
-} else {
-  var index = z * 10 * 10 + y * 10 + x;
-  pos[z][y][x] = new THREE.Vector3( CUBE_SIZE * 100, CUBE_SIZE * 100, CUBE_SIZE  * 100);
-  var geometry = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-  var material;
-  material = new THREE.MeshPhongMaterial( { color: 0x0000ff, transparent:true, blending:THREE.NormalBlending, opacity:0.5 } );	//青
-  mesh[z][y][x] = new THREE.Mesh( geometry, material );				//メッシュ：形と色を１つにまとめる。
-  mesh[z][y][x].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
-}
-}
-}
-}
 
-var textMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
-for (var i = 0; i <11; ++i) {
-if (i == 10) {
-textGeometry[i] = new THREE.TextGeometry( ".", {size: 8,height: 4,curveSegments: 3,font: "helvetiker",weight: "bold",style: "normal",bevelThickness: 1,bevelSize: 0,bevelEnabled: true});
-}else {
-textGeometry[i] = new THREE.TextGeometry( i, {size: 8,height: 4,curveSegments: 3,font: "helvetiker",weight: "bold",style: "normal",bevelThickness: 1,bevelSize: 0,bevelEnabled: true});
-}
-textNumber[i] = new Array(5);
-for (var j = 0; j < 5; ++j) {
-textNumber[i][j] = new THREE.Mesh( textGeometry[i], textMaterial );
-textNumber[i][j].position.x = j * 5;
-scene.add( textNumber[i][j] );
-}
+if        (v % 3 == 0) {cubesOfPlayerslines[v] = new THREE.Line(geometry33[v],material3r);}
+else if (v % 3 == 1) {cubesOfPlayerslines[v] = new THREE.Line(geometry33[v],material3g);}
+else if (v % 3 == 2) {cubesOfPlayerslines[v] = new THREE.Line(geometry33[v],material3b);}
+      
+      cubesOfPlayerslines[v].position.set(player_cube_pos.x,player_cube_pos.y+ 99999,player_cube_pos.z );
+      scene.add(cubesOfPlayerslines[v]);
 
-}
+  }
+  for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    cubesOfPlayersSpeed[v] = 0;
+  }
+
+  
+
+  //ステージのキューブ初期化
+  for (var z = 0; z < Z_NUM; ++z) {       mesh[z]     = new Array(CUBE_NUM);   pos[z]     = new Array(CUBE_NUM);
+  for (var y = 0; y < CUBE_NUM + 1; ++y){ mesh[z][y] = new Array(CUBE_NUM);   pos[z][y] = new Array(CUBE_NUM);
+  for (var x = 0; x < CUBE_NUM; ++x) {
+    if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
+        x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 // ||
+       //x % 2 == 1 && y % 2 == 1 && z % 2 == 0
+    ) {
+        if (y != CUBE_NUM) {
+          var index = z * 10 * 10 + y * 10 + x;
+          var HALF =CUBE_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
+          var HALF_Z = Z_NUM * CUBE_SIZE / 2 - CUBE_SIZE / 2;
+          pos[z][y][x] = new THREE.Vector3(x * CUBE_SIZE - HALF, y * CUBE_SIZE - HALF, z * CUBE_SIZE - HALF_Z);
+          var geometry = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+          var material;
+    //      if (x == 2 && y == 2 && z == 3 ) {
+    //        material = new THREE.MeshPhongMaterial( { color: 0xff0000, transparent:true, blending:THREE.NormalBlending, opacity:0.5 } );	//青
+    //      } else {
+            material = new THREE.MeshPhongMaterial( { color: 0xffffff, transparent:true, blending:THREE.NormalBlending, opacity:0.4 } );	//赤
+    //      }
+
+          mesh[z][y][x] = new THREE.Mesh( geometry, material );				//メッシュ：形と色を１つにまとめる。
+
+          var rad = 3.14159 / 180 * angle;
+          mesh[z][y][x].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
+          if (z == 1 || z == 2 || z == 3) {
+            scene.add( mesh[z][y][x] );                                     //シーンにメッシュを登録（カメラに見える世界に登録）
+          }
+          var material2;
+          material2 = new THREE.LineBasicMaterial({color:0xffffff,linewidth:5}) ;
+          geometry2[index] = new THREE.Geometry();
+          geometry22[index] = new THREE.Geometry();
+          var LINE_SIZE = CUBE_SIZE / 2;
+          HALF=0;
+          geometry2[index].vertices[0] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, -LINE_SIZE);
+          geometry2[index].vertices[1] = new THREE.Vector3(LINE_SIZE - HALF, -LINE_SIZE - HALF,  -LINE_SIZE);
+          geometry2[index].vertices[2] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
+          geometry2[index].vertices[3] = new THREE.Vector3(-LINE_SIZE - HALF, LINE_SIZE - HALF,  -LINE_SIZE);
+          geometry2[index].vertices[4] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, -LINE_SIZE);
+          geometry2[index].vertices[5] = new THREE.Vector3(-LINE_SIZE - HALF, -LINE_SIZE - HALF, LINE_SIZE );
+          geometry2[index].vertices[6] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF, LINE_SIZE );
+          geometry2[index].vertices[7] = new THREE.Vector3(LINE_SIZE - HALF,   LINE_SIZE - HALF, LINE_SIZE );
+          geometry2[index].vertices[8] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF, LINE_SIZE );
+          geometry2[index].vertices[9] = new THREE.Vector3(-LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE);
+          geometry2[index].vertices[10] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE);
+          geometry2[index].vertices[11] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  -LINE_SIZE);
+          geometry2[index].vertices[12] = new THREE.Vector3(LINE_SIZE - HALF,  -LINE_SIZE - HALF,  LINE_SIZE );
+          geometry2[index].vertices[13] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE );
+          geometry2[index].vertices[14] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
+          geometry2[index].vertices[15] = new THREE.Vector3(LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE );
+          geometry2[index].vertices[16] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF,  LINE_SIZE);
+          geometry2[index].vertices[17] = new THREE.Vector3(-LINE_SIZE - HALF,  LINE_SIZE - HALF,  -LINE_SIZE);
+
+          for (var i = 0; i < 18; ++i) {
+            geometry22[index].vertices[i] = new THREE.Vector3(geometry2[index].vertices[i].x,geometry2[index].vertices[i].y,geometry2[index].vertices[i].z);
+          }
+
+          lines[index] = new THREE.Line(geometry22[index],material2);
+          lines[index].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
+          if (z == 1 || z == 2 || z == 3) {
+            scene.add(lines[index]);
+          }
+        }
+    } else {
+      var index = z * 10 * 10 + y * 10 + x;
+      pos[z][y][x] = new THREE.Vector3( CUBE_SIZE * 100, CUBE_SIZE * 100, CUBE_SIZE  * 100);
+      var geometry = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+      var material;
+      material = new THREE.MeshPhongMaterial( { color: 0x0000ff, transparent:true, blending:THREE.NormalBlending, opacity:0.1 } );	//青
+      mesh[z][y][x] = new THREE.Mesh( geometry, material );				//メッシュ：形と色を１つにまとめる。
+      mesh[z][y][x].position.set( pos[z][y][x].x, pos[z][y][x].y, pos[z][y][x].z );
+    }
+  }
+  }
+  }
+
+  //テキストの初期化
+  var textMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
+  for (var i = 0; i <11; ++i) {
+    if (i == 10) {
+      textGeometry[i] = new THREE.TextGeometry( ".", {size: 8,height: 4,curveSegments: 3,font: "helvetiker",weight: "bold",style: "normal",bevelThickness: 1,bevelSize: 0,bevelEnabled: true});
+    }else {
+      textGeometry[i] = new THREE.TextGeometry( i, {size: 8,height: 4,curveSegments: 3,font: "helvetiker",weight: "bold",style: "normal",bevelThickness: 1,bevelSize: 0,bevelEnabled: true});
+    }
+    textNumber[i] = new Array(5);
+    for (var j = 0; j < 5; ++j) {
+      textNumber[i][j] = new THREE.Mesh( textGeometry[i], textMaterial );
+      textNumber[i][j].position.x = j * 5;
+ //     scene.add( textNumber[i][j] );
+    }
+  }
 
  
   ( function renderLoop () {
     requestAnimationFrame( renderLoop );							//毎フレーム更新
 
-
-//x,y,zの位置からインデックスを取得
-var x = Math.abs(~~((Math.cos(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) + (Math.sin(rad ) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
-var y = Math.abs(~~((Math.cos(rad) * ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE)) - (Math.sin(rad) * ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))));
-var z = ~~(((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
-var add = -1;
-if (rad != 0) {x=8-x; add=0;}
 //数値を文字へ変換
-var ss = "" + y;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
+var ss = debugText;//"" + y;//(~~((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE));
 var t = 0;
 for (var i = 0; i < 1; ++i) {
 t = ss.substr(i, 1);
 if (t == ".") {textNumber[10][i].position.y = 10;}
 else {
  for (var j = 0; j < 10; ++j) {
- if (j == t) { textNumber[t][i].position.y = 10; }
+ if (j == t) { textNumber[t][i].position.y = -10; }
  else {textNumber[j][i].position.y = 0;}
  }
 }
 }
 
-if (!rotation_flag) {
-
-//重力をspeedに加算
-//if (player_pos.y + PLAYER_SIZE / 2> mesh[0][0][0].position.y + CUBE_SIZE) {
-  jump_speed -= GRAVITY;
-//} else if (player_pos.y + PLAYER_SIZE / 2 < mesh[0][0][0].position.y + CUBE_SIZE) {
-//  jump_speed = 0;
-//  player_pos.y = mesh[0][0][0].position.y + CUBE_SIZE - PLAYER_SIZE / 2;
-//}
-
-var addi=0;
+if (rotation_flag) {
+    rotation_timing = 0;
+}
+      
+if (!rotation_flag && !reverse_rotation_flag) {
+    rotation_timing += 1;
+    jump_speed -= GRAVITY;
+    var x = Math.abs(~~(( ((player_pos.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))
+                      ));
+    var y = Math.abs(~~(( ((player_pos.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))
+                      ));
+    var z = ~~(((player_pos.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
+    if (   x_speed < 0) {x_left(x, y + 1, z);}    
+    if (   x_speed > 0) {x_right(x, y + 1, z);}
+    if (jump_speed > 0) {y_top(x, y, z);}
+    if (jump_speed < 0) {y_bottom(x, y, z);}
+    if (   z_speed > 0) {z_back(x, y + 1, z);}    
+    if (   z_speed < 0) {z_front(x, y + 1, z);}
+    
+    if (player_pos.y < mesh[0][0][0].position.y+ (CUBE_SIZE + PLAYER_SIZE) / 2) {
+        player_pos.y = mesh[0][0][0].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2;
+        jump_speed = 0;
+    }
+    player_pos.x +=    x_speed;
+    player_pos.y += jump_speed;
+    player_pos.z +=    z_speed;
+    
+    
+    var stopFlag = true;
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+        if (cubesOfPlayers[v].position.x > CUBE_SIZE * 20 || cubesOfPlayers[v].position.x < -CUBE_SIZE * 20 ||
+         cubesOfPlayers[v].position.y > CUBE_SIZE * 20 || cubesOfPlayers[v].position.y < -CUBE_SIZE * 20 ||
+         cubesOfPlayers[v].position.z > CUBE_SIZE * 20 || cubesOfPlayers[v].position.z < -CUBE_SIZE * 20) {
+            cubesOfPlayersSpeed[v] = 0;
+        }
+      if (cubesOfPlayersSpeed[v] < GRAVITY * -0.1) {//落下が止まってから消える判定
+          stopFlag = false;
+      }
+      if (rotation_timing < 3) {
+          stopFlag = false;
+      }
+    }
+    
+    //プレイヤーのキューブの落下    
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+        if (cubesOfPlayers[v].position.y < CUBE_SIZE * -3) {
+            cubesOfPlayers[v].position.y = CUBE_SIZE * -3;
+            cubesOfPlayersSpeed[v] = 0;
+        }
+        if (cubesOfPlayers[v].position.y < 99999) {
+        cubesOfPlayersSpeed[v] -= GRAVITY * 0.1;
+        cubesOfPlayers[v].position.y += cubesOfPlayersSpeed[v];
+        }
+    }
+    
+    var add = -1;
+    var addi= -1;
+/*
 //床の当たり判定
-for (var i = -1; i <2; ++i) {
-addi = i;
-if(rad != 0) {addi = 1; add = i;}
-for (var j = -1; j <2; ++j) {
-if (
-player_pos.x > mesh[z+j][y + add][x+addi].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.x < mesh[z+j][y + add][x+addi].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.y < mesh[z+j][y + add][x+addi].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.y > mesh[z+j][y + add][x+addi].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.z > mesh[z+j][y + add][x+addi].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-player_pos.z < mesh[z+j][y + add][x+addi].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
-) {
-	if (player_pos.y < mesh[z+j][y + add][x+addi].position.y+ (CUBE_SIZE + PLAYER_SIZE) / 2) {
-		player_pos.y = mesh[z+j][y + add][x+addi].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2;
-		jump_speed = 0;
-	}
-}
-}
-}
-//当たり判定
-if (x_speed < 0) {x_left(x, y, z);}
-if (x_speed > 0) {x_right(x, y, z);}
-if (jump_speed > 0) {y_top(x, y, z);}
-if (z_speed > 0) {z_back(x, y, z);}
-if (z_speed < 0) {z_front(x, y, z);}
+    for (var i = -1; i <2; ++i) {addi = i;
+    for (var j = -1; j <2; ++j) {
 
-//if (player_pos.x < -3 * CUBE_SIZE - PLAYER_SIZE / 2 + 1) {x_speed = 0; player_pos.x = -3 * CUBE_SIZE - PLAYER_SIZE / 2 + 1;}
-//if (player_pos.x > 3 * CUBE_SIZE + PLAYER_SIZE / 2 - 1) {x_speed = 0; player_pos.x = 3 * CUBE_SIZE + PLAYER_SIZE / 2 - 1;}
-//if (player_pos.y < -3 * CUBE_SIZE - PLAYER_SIZE / 2 + 1) {jump_speed = 0; player_pos.y = -3 * CUBE_SIZE - PLAYER_SIZE / 2  + 1;}
-if (player_pos.z < mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[0][1][0].position.z  + (CUBE_SIZE + PLAYER_SIZE) / 2}
-if (player_pos.z > mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2) { z_speed = 0; player_pos.z = mesh[4][1][0].position.z  - (CUBE_SIZE + PLAYER_SIZE) / 2}
+    for (var w = 0; w < IndexOfPlayerCubes; ++w) {
+        if (cubesOfPlayers[w].position.x > mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+            cubesOfPlayers[w].position.x < mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+            cubesOfPlayers[w].position.y < mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.y + (CUBE_SIZE) &&
+            cubesOfPlayers[w].position.y > mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.y &&
+            cubesOfPlayers[w].position.z > mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+            cubesOfPlayers[w].position.z < mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2) {
+            cubesOfPlayers[w].position.y = mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.y + CUBE_SIZE;
+            cubesOfPlayersSpeed[w] = 0;
+        }
+    }
+        
+    }
+    }
+*/
 
-//位置にspeedを追加
-player_pos.x +=       x_speed;
-player_pos.y += jump_speed;
-player_pos.z +=       z_speed;
+    if (player_pos.z > CUBE_SIZE + PLAYER_SIZE/2) {
+        player_pos.z = CUBE_SIZE + PLAYER_SIZE/2;
+    }
+    if (player_pos.z < -CUBE_SIZE - PLAYER_SIZE/2) {
+        player_pos.z = -CUBE_SIZE - PLAYER_SIZE/2;
+    }
+    
+    //プレイヤーのキューブの当たり判定　対　プレイヤー
+    //y方向
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+      if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE-1) / 2 + X_SPEED &&
+          player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE-1) / 2 - X_SPEED &&
+          player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE-1) / 2 &&
+          player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE-1) / 2
+         ) {
+        player_pos.y = cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE ) / 2;
+        jump_speed = 0;
+      }
+      //x方向
+      if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 + X_SPEED &&
+          player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 - X_SPEED &&
+          player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE-1) / 2 &&
+          player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE-1) / 2
+         ) {
+        player_pos.x = cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2;
+      }
+      if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 + X_SPEED &&
+          player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 - X_SPEED &&
+          player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE-1) / 2 &&
+          player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE-1) / 2
+         ) {
+        player_pos.x = cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2;
+      }
+     //z方向
+      if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 + X_SPEED &&
+          player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 - X_SPEED &&
+          player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE - 1) / 2
+         ) {
+        player_pos.z = cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2;
+      }
+      if (player_pos.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 + X_SPEED &&
+          player_pos.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 - X_SPEED &&
+          player_pos.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.y > cubesOfPlayers[v].position.y - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE - 1) / 2 &&
+          player_pos.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+         ) {
+        player_pos.z = cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2;
+      }
 
-}//rotation_flag
+    }
+
+    //プレイヤーのキューブの当たり判定　対　プレイヤーのキューブ
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    for (var w = 0; w < PLAYER_CUBE_NUM; ++w) {
+      if (cubesOfPlayers[w].position.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.y < cubesOfPlayers[v].position.y + (CUBE_SIZE) &&
+          cubesOfPlayers[w].position.y > cubesOfPlayers[v].position.y &&
+          cubesOfPlayers[w].position.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+         ) {
+        cubesOfPlayers[w].position.y = cubesOfPlayers[v].position.y + (CUBE_SIZE);
+        cubesOfPlayersSpeed[w] = 0;
+      }
+    }
+    }
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+      deleteFlag[v] = 0;
+    }
+    if (stopFlag) {
+
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    for (var w = 0; w < PLAYER_CUBE_NUM; ++w) {
+      if (cubesOfPlayers[w].position.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE) &&
+          cubesOfPlayers[w].position.y > cubesOfPlayers[v].position.y &&
+          cubesOfPlayers[w].position.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+         ) {
+          //同色が上下なら消える
+          if (cubesOfPlayersColor[v] == cubesOfPlayersColor[w] ) {
+              deleteFlag[v] = 1;
+              deleteFlag[w] = 1;
+          }
+      }
+    }
+    }
+
+
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    for (var w = 0; w < PLAYER_CUBE_NUM; ++w) {
+      if (cubesOfPlayers[w].position.x < cubesOfPlayers[v].position.x + (CUBE_SIZE+ PLAYER_SIZE) &&
+          cubesOfPlayers[w].position.x > cubesOfPlayers[v].position.x &&
+          cubesOfPlayers[w].position.y > cubesOfPlayers[v].position.y- (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.z > cubesOfPlayers[v].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.z < cubesOfPlayers[v].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+         ) {
+          //同色が左右なら消える
+          if (cubesOfPlayersColor[v] == cubesOfPlayersColor[w] ) {
+              deleteFlag[v] = 1;
+              deleteFlag[w] = 1;
+          }
+      }
+    }
+    }
+
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+    for (var w = 0; w < PLAYER_CUBE_NUM; ++w) {
+      if (cubesOfPlayers[w].position.z < cubesOfPlayers[v].position.z + (CUBE_SIZE+ PLAYER_SIZE) &&
+          cubesOfPlayers[w].position.z > cubesOfPlayers[v].position.z &&
+          cubesOfPlayers[w].position.y > cubesOfPlayers[v].position.y- (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.y < cubesOfPlayers[v].position.y + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.x > cubesOfPlayers[v].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+          cubesOfPlayers[w].position.x < cubesOfPlayers[v].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2
+         ) {
+          //同色が前後なら消える
+          if (cubesOfPlayersColor[v] == cubesOfPlayersColor[w] ) {
+              deleteFlag[v] = 1;
+              deleteFlag[w] = 1;
+
+          }
+      }
+    }
+    }
+
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+        if (deleteFlag[v] == 1) {
+            if (cubesOfPlayers[v].material.opacity < 1.0) {
+                cubesOfPlayers[v].material.opacity += 0.01;
+            }
+        }
+    }    
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+      if (deleteFlag[v] == 1 && cubesOfPlayers[v].material.opacity >= 1.0) {
+        cubesOfPlayers[v].position.y = 99999;
+        cubesOfPlayersSpeed[v] = 0;
+      }
+    }
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+      if (deleteFlag[v] == 1 && cubesOfPlayers[v].material.opacity >= 1.0) {
+                cubesOfPlayers[v].material.opacity = 0.2;
+                deleteFlag[v] = 0;
+      }
+    }
+
+  }
+
+
+
+    for (var w = 0; w < IndexOfPlayerCubes; ++w) {
+/*    var ix = (~~(( ((cubesOfPlayers[w].position.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))
+                      ));
+    var iy = (~~(( ((cubesOfPlayers[w].position.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))
+                      ));
+    var iz = ~~(((cubesOfPlayers[w].position.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
+*/
+for (var ix = 1; ix < 4; ++ix) {
+for (var iy = 2; iy < 7; ++iy) {
+for (var iz = 2; iz < 7; ++iz) {
+if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
+        if (
+        cubesOfPlayers[w].position.x > mesh[ix][iy][iz].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        cubesOfPlayers[w].position.x < mesh[ix][iy][iz].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        cubesOfPlayers[w].position.y < mesh[ix][iy][iz].position.y + (CUBE_SIZE) &&
+        cubesOfPlayers[w].position.y > mesh[ix][iy][iz].position.y &&
+        cubesOfPlayers[w].position.z > mesh[ix][iy][iz].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
+        cubesOfPlayers[w].position.z < mesh[ix][iy][iz].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
+        ) {
+		cubesOfPlayers[w].position.y = mesh[ix][iy][iz].position.y + CUBE_SIZE;
+		cubesOfPlayersSpeed[w] = 0;
+        }
+}
+      }
+      }
+      }
+    }
+
+
+}
 
 //ボタンが押されていたらspeedに速さを入れる
-    if (keyArray[0] ) {        keyArray[0] = false;        x_speed = -0.5;}
-    if (keyArray[2] ) {        keyArray[2] = false;        x_speed =  0.5;}
-    if (keyArray[1] ) {        keyArray[1] = false;        z_speed = -0.5;}
-    if (keyArray[3] ) {        keyArray[3] = false;        z_speed =  0.5;}
-    if (keyArray[4]  && jump_speed == 0) {        keyArray[4] = false;        jump_speed = JUMP_SPEED;    }
-    if (keyArray[5] ) { keyArray[5] = false; rotation_flag = !rotation_flag;} 
+    if (keyArray[0] ) {        keyArray[0] = false;        x_speed = -X_SPEED;}
+    if (keyArray[2] ) {        keyArray[2] = false;        x_speed =  X_SPEED;}
+    if (keyArray[1] ) {        keyArray[1] = false;        z_speed = -Z_SPEED;}
+    if (keyArray[3] ) {        keyArray[3] = false;        z_speed =  Z_SPEED;}
+    if (keyArray[4]  && jump_speed == 0) {
+     if (player_pos.y <= CUBE_SIZE * 3) {
+        keyArray[4] = false;        jump_speed = JUMP_SPEED;
+      }
+    }
+    if (keyArray[5] && !rotation_flag && !reverse_rotation_flag) {
+        keyArray[5] = false;
+        rotation_flag = !rotation_flag;
+        player_pos_rot.set( player_pos.x, player_pos.y, player_pos.z);
+    }
+    if (keyArray[6] ) {
+     if (player_pos.y <= CUBE_SIZE * 2) {
+        keyArray[6]=false;
+        xCollisionIndex[IndexOfPlayerCubes] = x;
+        yCollisionIndex[IndexOfPlayerCubes] = y;
+        zCollisionIndex[IndexOfPlayerCubes] = z;
+        if(player_pos.x*1.4 - ((player_pos.x*1.4) % CUBE_SIZE) >= 3 *CUBE_SIZE + 1) {
+            cubesOfPlayers[IndexOfPlayerCubes].position.set(player_pos.x - (player_pos.x % CUBE_SIZE), player_pos.y, player_pos.z*1.4 - ((player_pos.z*1.4) % CUBE_SIZE));
+        } else if(player_pos.x*1.4 - ((player_pos.x*1.4) % CUBE_SIZE) <= -3 *CUBE_SIZE - 1) {
+            cubesOfPlayers[IndexOfPlayerCubes].position.set(player_pos.x - (player_pos.x % CUBE_SIZE), player_pos.y, player_pos.z*1.4 - ((player_pos.z*1.4) % CUBE_SIZE));
+        } else {
+        cubesOfPlayers[IndexOfPlayerCubes].position.set(player_pos.x*1.4 - ((player_pos.x*1.4) % CUBE_SIZE), player_pos.y, player_pos.z*1.4 - ((player_pos.z*1.4) % CUBE_SIZE));
+        }
+        cubesOfPlayersPos[IndexOfPlayerCubes].x = player_pos.x;// - (player_pos.x % CUBE_SIZE);
+        cubesOfPlayersPos[IndexOfPlayerCubes].y = player_pos.y;
+        cubesOfPlayersPos[IndexOfPlayerCubes].z = player_pos.z;// - (player_pos.z % CUBE_SIZE);
+        cubesOfPlayers[IndexOfPlayerCubes].material.opacity = 0.2;
+
+        ++IndexOfPlayerCubes;
+      }
+    }
+    if (keyArray[7] && !rotation_flag && !reverse_rotation_flag) {
+        keyArray[7] = false;
+        reverse_rotation_flag = !reverse_rotation_flag;
+        player_pos_rot.set( player_pos.x, player_pos.y, player_pos.z);
+    }
+/*    if (keyArray[7]){
+        keyArray[7]=false;
+        xCollisionIndex[IndexOfPlayerCubes] = x;
+        yCollisionIndex[IndexOfPlayerCubes] = y;
+        zCollisionIndex[IndexOfPlayerCubes] = z;
+
+        cubesOfPlayers[IndexOfPlayerCubes].position.set(player_pos.x, player_pos.y, player_pos.z);
+        cubesOfPlayersPos[IndexOfPlayerCubes].x = player_pos.x;
+        cubesOfPlayersPos[IndexOfPlayerCubes].y = player_pos.y;
+        cubesOfPlayersPos[IndexOfPlayerCubes].z = player_pos.z;
+        
+        
+        ++IndexOfPlayerCubes;
+    }
+  */    
     if (keyArrayUp[0]) {        keyArrayUp[0] = false;   x_speed = 0; }
     if (keyArrayUp[2]) {        keyArrayUp[2] = false;   x_speed = 0; }
     if (keyArrayUp[1]) {        keyArrayUp[1] = false;   z_speed = 0; }
@@ -382,9 +832,68 @@ player_pos.z +=       z_speed;
     player.position.set(player_pos.x, player_pos.y,player_pos.z	);
 
 //回転角を代入
-if (rotation_flag) { angle += 1;}
-if (angle % 90 == 0) { rotation_flag = false; }
+if (rotation_flag) {
+    angle += 1;
+        player_pos.x = Math.cos(rad) * (player_pos_rot.x - (player_pos_rot.x % CUBE_SIZE)) + Math.sin(rad) * (player_pos_rot.y - (player_pos_rot.y % CUBE_SIZE));
+        player_pos.y = Math.cos(rad) * (player_pos_rot.y - (player_pos_rot.y % CUBE_SIZE)) - Math.sin(rad) * (player_pos_rot.x - (player_pos_rot.x % CUBE_SIZE));
+        player_pos.z =                 player_pos_rot.z;
+
+    
+    
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+        if (IndexOfPlayerCubes > v) {
+          cubesOfPlayers[v].position.x = Math.cos(rad) * (cubesOfPlayersPos[v].x ) + Math.sin(rad) * (cubesOfPlayersPos[v].y);
+          cubesOfPlayers[v].position.y = Math.cos(rad) * (cubesOfPlayersPos[v].y ) - Math.sin(rad) * (cubesOfPlayersPos[v].x);
+          cubesOfPlayers[v].position.z =                 cubesOfPlayersPos[v].z;
+          cubesOfPlayerslines[v].position.set(cubesOfPlayers[v].position.x,cubesOfPlayers[v].position.y,cubesOfPlayers[v].position.z );
+        } else {
+              cubesOfPlayers[v].position.y = 99999;
+              cubesOfPlayersSpeed[v] = 0;
+        }
+    }
+} else if (reverse_rotation_flag) {
+    angle -= 1;
+        player_pos.x = Math.cos(rad) * (player_pos_rot.x - (player_pos_rot.x % CUBE_SIZE)) + Math.sin(rad) * (player_pos_rot.y - (player_pos_rot.y % CUBE_SIZE));
+        player_pos.y = Math.cos(rad) * (player_pos_rot.y - (player_pos_rot.y % CUBE_SIZE)) - Math.sin(rad) * (player_pos_rot.x - (player_pos_rot.x % CUBE_SIZE));
+        player_pos.z =                 player_pos_rot.z;
+
+    
+    
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+        if (IndexOfPlayerCubes > v) {
+          cubesOfPlayers[v].position.x = Math.cos(rad) * (cubesOfPlayersPos[v].x ) + Math.sin(rad) * (cubesOfPlayersPos[v].y);
+          cubesOfPlayers[v].position.y = Math.cos(rad) * (cubesOfPlayersPos[v].y ) - Math.sin(rad) * (cubesOfPlayersPos[v].x);
+          cubesOfPlayers[v].position.z =                 cubesOfPlayersPos[v].z;
+          cubesOfPlayerslines[v].position.set(cubesOfPlayers[v].position.x,cubesOfPlayers[v].position.y,cubesOfPlayers[v].position.z );
+        } else {
+              cubesOfPlayers[v].position.y = 99999;
+              cubesOfPlayersSpeed[v] = 0;
+        }
+    }
+} else {
+    for (var v = 0; v < PLAYER_CUBE_NUM; ++v) {
+        if (IndexOfPlayerCubes > v) {
+          cubesOfPlayersPos[v].x = cubesOfPlayers[v].position.x;
+          cubesOfPlayersPos[v].y = cubesOfPlayers[v].position.y;
+          cubesOfPlayersPos[v].z = cubesOfPlayers[v].position.z;
+          cubesOfPlayerslines[v].position.set(cubesOfPlayers[v].position.x,cubesOfPlayers[v].position.y,cubesOfPlayers[v].position.z );
+        } else {
+              cubesOfPlayers[v].position.y = 99999;
+              cubesOfPlayersSpeed[v] = 0;
+        }
+    }
+
+}
+      
+      
+
+var stage_rad = 0;
+if (angle % 90 == 0) { rotation_flag = false; reverse_rotation_flag = false;}
 rad = 3.14159 / 180 * angle;
+stage_rad = rad;
+if (angle % 90 == 0) {stage_rad = 0; angle = 0;}
+      
+      
 for (var z = 0; z < Z_NUM; ++z) {
 for (var y = 0; y < CUBE_NUM; ++y){ 
 for (var x = 0; x < CUBE_NUM; ++x) {
@@ -394,18 +903,20 @@ x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 //||
 //x % 2 == 1 && y % 2 == 1 && z % 2 == 0
 ) {
   var i = z * 10 * 10 + y * 10 + x;
-  mesh[z][y][x].position.set( Math.cos(rad) * pos[z][y][x].x + Math.sin(rad) * pos[z][y][x].y, Math.cos(rad) * pos[z][y][x].y - Math.sin(rad) * pos[z][y][x].x, pos[z][y][x].z );
-  lines[i].position.set( Math.cos(rad) * pos[z][y][x].x + Math.sin(rad) * pos[z][y][x].y, Math.cos(rad) * pos[z][y][x].y - Math.sin(rad) * pos[z][y][x].x, pos[z][y][x].z );
+  mesh[z][y][x].position.set( Math.cos(stage_rad) * pos[z][y][x].x + Math.sin(stage_rad) * pos[z][y][x].y, Math.cos(stage_rad) * pos[z][y][x].y - Math.sin(stage_rad) * pos[z][y][x].x, pos[z][y][x].z );
+  lines[i].position.set( Math.cos(stage_rad) * pos[z][y][x].x + Math.sin(stage_rad) * pos[z][y][x].y, Math.cos(stage_rad) * pos[z][y][x].y - Math.sin(stage_rad) * pos[z][y][x].x, pos[z][y][x].z );
 }
 }
 }
 }
+    camera.position.set(0, player_pos.y + 20, 75);
+  camera.lookAt( {x:0, y:player_pos.y, z:0 } );
     renderer.render( scene, camera );								//レンダラーにシーンとカメラを登録
   } )();
 };
  
 window.addEventListener( 'DOMContentLoaded', main, false );		//イベント登録
 </script>
- 
+<a href="http://continue-jump.com/blog.php">ブログへのリンク</a>
 </body>
 </html>
