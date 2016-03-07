@@ -391,8 +391,7 @@ else if (v % 3 == 2) {cubesOfPlayerslines[v] = new THREE.Line(geometry33[v],mate
   for (var y = 0; y < CUBE_NUM + 1; ++y){ mesh[z][y] = new Array(CUBE_NUM);   pos[z][y] = new Array(CUBE_NUM);
   for (var x = 0; x < CUBE_NUM; ++x) {
     if (x == 0 || x == CUBE_NUM - 1|| y == 0 || y == CUBE_NUM -1 ||
-        x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 // ||
-       //x % 2 == 1 && y % 2 == 1 && z % 2 == 0
+        x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1
     ) {
         if (y != CUBE_NUM) {
           var index = z * 10 * 10 + y * 10 + x;
@@ -401,12 +400,7 @@ else if (v % 3 == 2) {cubesOfPlayerslines[v] = new THREE.Line(geometry33[v],mate
           pos[z][y][x] = new THREE.Vector3(x * CUBE_SIZE - HALF, y * CUBE_SIZE - HALF, z * CUBE_SIZE - HALF_Z);
           var geometry = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
           var material;
-    //      if (x == 2 && y == 2 && z == 3 ) {
-    //        material = new THREE.MeshPhongMaterial( { color: 0xff0000, transparent:true, blending:THREE.NormalBlending, opacity:0.5 } );	//青
-    //      } else {
-            material = new THREE.MeshPhongMaterial( { color: 0xffffff, transparent:true, blending:THREE.NormalBlending, opacity:0.4 } );	//赤
-    //      }
-
+          material = new THREE.MeshPhongMaterial( { color: 0xffffff, transparent:true, blending:THREE.NormalBlending, opacity:0.4 } );	//赤
           mesh[z][y][x] = new THREE.Mesh( geometry, material );				//メッシュ：形と色を１つにまとめる。
 
           var rad = 3.14159 / 180 * angle;
@@ -553,26 +547,6 @@ if (!rotation_flag && !reverse_rotation_flag) {
     
     var add = -1;
     var addi= -1;
-/*
-//床の当たり判定
-    for (var i = -1; i <2; ++i) {addi = i;
-    for (var j = -1; j <2; ++j) {
-
-    for (var w = 0; w < IndexOfPlayerCubes; ++w) {
-        if (cubesOfPlayers[w].position.x > mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-            cubesOfPlayers[w].position.x < mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-            cubesOfPlayers[w].position.y < mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.y + (CUBE_SIZE) &&
-            cubesOfPlayers[w].position.y > mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.y &&
-            cubesOfPlayers[w].position.z > mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
-            cubesOfPlayers[w].position.z < mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2) {
-            cubesOfPlayers[w].position.y = mesh[zCollisionIndex[w]+j][yCollisionIndex[w]+add][xCollisionIndex[w]+addi].position.y + CUBE_SIZE;
-            cubesOfPlayersSpeed[w] = 0;
-        }
-    }
-        
-    }
-    }
-*/
 
     if (player_pos.z > CUBE_SIZE + PLAYER_SIZE/2) {
         player_pos.z = CUBE_SIZE + PLAYER_SIZE/2;
@@ -735,17 +709,11 @@ if (!rotation_flag && !reverse_rotation_flag) {
 
 
 
-    for (var w = 0; w < IndexOfPlayerCubes; ++w) {
-/*    var ix = (~~(( ((cubesOfPlayers[w].position.x + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))
-                      ));
-    var iy = (~~(( ((cubesOfPlayers[w].position.y + CUBE_SIZE * CUBE_NUM / 2) / CUBE_SIZE))
-                      ));
-    var iz = ~~(((cubesOfPlayers[w].position.z + CUBE_SIZE / 2) / CUBE_SIZE)) + 1;
-*/
-for (var ix = 1; ix < 4; ++ix) {
-for (var iy = 2; iy < 7; ++iy) {
-for (var iz = 2; iz < 7; ++iz) {
-if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
+  for (var w = 0; w < IndexOfPlayerCubes; ++w) {
+    for (var ix = 1; ix < 4; ++ix) {
+    for (var iy = 2; iy < 7; ++iy) {
+    for (var iz = 2; iz < 7; ++iz) {
+      if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
         if (
         cubesOfPlayers[w].position.x > mesh[ix][iy][iz].position.x - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
         cubesOfPlayers[w].position.x < mesh[ix][iy][iz].position.x + (CUBE_SIZE + PLAYER_SIZE) / 2 &&
@@ -754,16 +722,14 @@ if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
         cubesOfPlayers[w].position.z > mesh[ix][iy][iz].position.z - (CUBE_SIZE + PLAYER_SIZE) / 2 &&
         cubesOfPlayers[w].position.z < mesh[ix][iy][iz].position.z + (CUBE_SIZE + PLAYER_SIZE) / 2
         ) {
-		cubesOfPlayers[w].position.y = mesh[ix][iy][iz].position.y + CUBE_SIZE;
-		cubesOfPlayersSpeed[w] = 0;
+          cubesOfPlayers[w].position.y = mesh[ix][iy][iz].position.y + CUBE_SIZE;
+		  cubesOfPlayersSpeed[w] = 0;
         }
-}
-      }
-      }
       }
     }
-
-
+    }
+    }
+  }
 }
 
 //ボタンが押されていたらspeedに速さを入れる
@@ -772,7 +738,7 @@ if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
     if (keyArray[1] ) {        keyArray[1] = false;        z_speed = -Z_SPEED;}
     if (keyArray[3] ) {        keyArray[3] = false;        z_speed =  Z_SPEED;}
     if (keyArray[4]  && jump_speed == 0) {
-     if (player_pos.y <= CUBE_SIZE * 3) {
+      if (player_pos.y <= CUBE_SIZE * 3) {
         keyArray[4] = false;        jump_speed = JUMP_SPEED;
       }
     }
@@ -782,7 +748,7 @@ if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
         player_pos_rot.set( player_pos.x, player_pos.y, player_pos.z);
     }
     if (keyArray[6] ) {
-     if (player_pos.y <= CUBE_SIZE * 2) {
+      if (player_pos.y <= CUBE_SIZE * 2) {
         keyArray[6]=false;
         xCollisionIndex[IndexOfPlayerCubes] = x;
         yCollisionIndex[IndexOfPlayerCubes] = y;
@@ -807,21 +773,6 @@ if (ix != 2 && iy % 2 == 0 && iz % 2 == 0) {
         reverse_rotation_flag = !reverse_rotation_flag;
         player_pos_rot.set( player_pos.x, player_pos.y, player_pos.z);
     }
-/*    if (keyArray[7]){
-        keyArray[7]=false;
-        xCollisionIndex[IndexOfPlayerCubes] = x;
-        yCollisionIndex[IndexOfPlayerCubes] = y;
-        zCollisionIndex[IndexOfPlayerCubes] = z;
-
-        cubesOfPlayers[IndexOfPlayerCubes].position.set(player_pos.x, player_pos.y, player_pos.z);
-        cubesOfPlayersPos[IndexOfPlayerCubes].x = player_pos.x;
-        cubesOfPlayersPos[IndexOfPlayerCubes].y = player_pos.y;
-        cubesOfPlayersPos[IndexOfPlayerCubes].z = player_pos.z;
-        
-        
-        ++IndexOfPlayerCubes;
-    }
-  */    
     if (keyArrayUp[0]) {        keyArrayUp[0] = false;   x_speed = 0; }
     if (keyArrayUp[2]) {        keyArrayUp[2] = false;   x_speed = 0; }
     if (keyArrayUp[1]) {        keyArrayUp[1] = false;   z_speed = 0; }
@@ -909,9 +860,9 @@ x % 2 ==  0 &&  y % 2 == 0 && z % 2 == 1 //||
 }
 }
 }
-    camera.position.set(0, player_pos.y + 20, 75);
+  camera.position.set(0, player_pos.y + 20, 75);
   camera.lookAt( {x:0, y:player_pos.y, z:0 } );
-    renderer.render( scene, camera );								//レンダラーにシーンとカメラを登録
+  renderer.render( scene, camera );								//レンダラーにシーンとカメラを登録
   } )();
 };
  
